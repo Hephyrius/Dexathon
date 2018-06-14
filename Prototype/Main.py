@@ -8,3 +8,19 @@ Created on Sat Jun  2 01:19:03 2018
 import numpy
 import pandas
 
+class transaction:
+    
+    TransactionType = 0
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
