@@ -18,10 +18,10 @@ class Block:
      PreviousHash = ""
      Data = ""
      TimeStamp = ""
+     nonce = 0
      
      def calculateHash(self):
           hashingData = str(self.Data)+ "_" +str(self.TimeStamp) + "_" + str(self.PreviousHash)
-          print(hashingData)
           return utils.UtilFunctions.applySha256(utils.UtilFunctions, hashingData)
      
      #class constructor
@@ -32,19 +32,16 @@ class Block:
           self.PreviousHash = _previousHash
           self.TimeStamp = time.time()
           self.BlockHash = self.calculateHash()
+          self.nonce = 0
+     
+     
+     #PoW approach for now, mine block is standard PoW type stuff
+     def MineBlock(self, difficulty):
           
-
+          while(self.nonce != difficulty):
+               
+               self.nonce = self.nonce+1
+               self.BlockHash = self.calculateHash()
           
-
-
-
-#basic testing:
-
-genesis = Block("first block", "0")
-print(genesis.BlockHash)
-
-second = Block("second block", genesis.BlockHash)
-print(second.BlockHash)
-
-third = Block("third block", second.BlockHash)
-print(third.BlockHash)
+          print("block mined: " + self.BlockHash)
+               

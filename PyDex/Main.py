@@ -24,6 +24,9 @@ class HephDex:
      
      Blockchain = []
      
+     #temporarily a PoW approach while creating fundamentals. PoS is more complex!
+     difficulty = 100000
+     
      #init the blockchain
      def __init__(self):
           self.Blockchain = []
@@ -39,9 +42,11 @@ class HephDex:
                previousBlock = self.Blockchain[i-1]
                
                if currentBlock.BlockHash != currentBlock.calculateHash():
+                    print("Different current and calculated hashes")
                     return False
                
                if currentBlock.PreviousHash != previousBlock.BlockHash:
+                    print("Previous and Current hashes are different")
                     return False
                
           return True
@@ -51,8 +56,13 @@ class HephDex:
           
           #create some blocks
           self.Blockchain.append(bl.Block("GenesisBlock", "0x0"))
+          self.Blockchain[len(self.Blockchain)-1].MineBlock(self.difficulty)
+          
           self.Blockchain.append(bl.Block("SecondBlock", self.Blockchain[len(self.Blockchain)-1].BlockHash))
+          self.Blockchain[len(self.Blockchain)-1].MineBlock(self.difficulty)
+          
           self.Blockchain.append(bl.Block("ThirdBlock", self.Blockchain[len(self.Blockchain)-1].BlockHash))
+          self.Blockchain[len(self.Blockchain)-1].MineBlock(self.difficulty)
           
           #dump to the file system
           dumpData = json.dumps(self.Blockchain, cls=myencoder)
@@ -67,4 +77,4 @@ class HephDex:
                print("Chain is valid")
      
 Heph = HephDex()
-dump = Heph.main()
+Heph.main()
