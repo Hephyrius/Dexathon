@@ -3,6 +3,8 @@
 Created on Sat Jun 23 04:00:04 2018
 
 @author: Khera
+
+this class deals with the signing of transactions as well as blockchain from the user side
 """
 
 from cryptography.hazmat.primitives import serialization
@@ -12,7 +14,7 @@ from cryptography.hazmat.backends import default_backend
 class Wallet():
      
      PrivateKey = ""
-     PEMKey
+     PEMKey = ""
      PublicKey = ""
      
      def __init__(self):
