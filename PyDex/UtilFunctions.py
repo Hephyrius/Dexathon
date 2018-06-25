@@ -2,7 +2,8 @@
 """
 Created on Sat Jun 23 02:56:37 2018
 
-@author: Khera
+@author: Harnick Khera github/hephyrius
+
 
 class is responsible for utility functions such as hashing
 

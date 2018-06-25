@@ -2,7 +2,8 @@
 """
 Created on Sat Jun 23 02:47:27 2018
 
-@author: Khera
+@author: Harnick Khera github/hephyrius
+
 
 main class for running and operating the blockchain
 
