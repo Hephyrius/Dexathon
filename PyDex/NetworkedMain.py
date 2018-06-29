@@ -15,8 +15,13 @@ import TransactionOutput as outs
 import Wallet as wlt
 
 import UtilFunctions as utils
-import json
+import zmq
+
+from threading import Thread
+import time
+
 from json import JSONEncoder
+import json
 
 #helper function used for dumping the blockchain to a file
 class myencoder(JSONEncoder):
@@ -30,14 +35,34 @@ class HephDex:
      Blockchain = []
      
      #temporarily a PoW approach while creating fundamentals. PoS is more complex!
-     difficulty = 1
-     MinimumTransactionValue = 0.001
+     difficulty = 0 # TODO: Remove this
+     
+     #minimum spend for native coin
+     MinimumTransactionValue = 0.000000000001
+     
+     #all unspent transactions on the blockchain
      UTXOs = dict()
+     
+     #keep a "map" of all the validators on the network
+     Validators = dict()
+     
+     #storing blocks temporarily -- used in DPOS
+     TemporaryBlocks = []
+     CandidateBlocks = []
+     TransactionQue = []
+     #announcement is sent to all nodes
+     Announcement = ""
      
      #init the blockchain
      def __init__(self):
           self.Blockchain = []
           self.UTXOs = dict()
+          self.MinimumTransactionValue = 0.000000000001
+          self.Validators = dict()
+          self.CandidateBlocks = []
+          self.TemporaryBlocks = []
+          self.TransactionQue = []
+          self.Announcement = ""
      
      def AddBlock(self, NewBlock):
           NewBlock.MineBlock(0)
@@ -118,12 +143,11 @@ class HephDex:
           return True
      
      #used to simulate a chain
-     def HexCoin(self):
+     def initCoin(self):
           
           #generate some walets
           Coinbase = wlt.Wallet()
           walletA = wlt.Wallet()
-          walletB = wlt.Wallet()
           
           #send 100 coins to walleta
           genesisTransaction = txn.Transaction(Coinbase.PublicKey, walletA.PublicKey, 100, 0, None)
@@ -139,39 +163,21 @@ class HephDex:
           genesis.AddTransaction(genesisTransaction, self)
           self.AddBlock(genesis)
           
-          #block 1
-          block1 = bl.Block(genesis.BlockHash)
-          print("balance of wallet a = " + str(walletA.getBalance(self)))
-          print("sending 40 from wallet a to b")
-          block1.AddTransaction(walletA.SendFunds(walletB.PublicKey, 40, self), self)
-          self.AddBlock(block1)
           
-          print("balance of wallet a = " + str(walletA.getBalance(self)))
-          print("balance of wallet b = " + str(walletB.getBalance(self)))
-
-          #block 1
-          block2 = bl.Block(block1.BlockHash)
-          print("balance of wallet a = " + str(walletA.getBalance(self)))
-          print("spending more coins than in wallet")
-          block2.AddTransaction(walletA.SendFunds(walletB.PublicKey, 5, self), self)
-          self.AddBlock(block2)
-          print("balance of wallet a = " + str(walletA.getBalance(self)))
-          print("balance of wallet b = " + str(walletB.getBalance(self)))
+     def StartNetworkThread(self):
+          context = zmq.Context()
+          socket = context.socket(zmq.REP)
+          socket.bind("tcp://*:5555")
+          while True:
+              #  Wait for next request from client
+              message = socket.recv()
+              print("Received request: %s" % message)
           
-          #block 1
-          block3 = bl.Block(block2.BlockHash)
-          print("balance of wallet a = " + str(walletB.getBalance(self)))
-          print("sending 40 from wallet a to b")
-          block3.AddTransaction(walletB.SendFunds(walletA.PublicKey, 25.5, self), self)
-          self.AddBlock(block3)
-          print("balance of wallet a = " + str(walletA.getBalance(self)))
-          print("balance of wallet b = " + str(walletB.getBalance(self)))
+              #  Do some 'work'
+              time.sleep(1)
           
-          #clears spent Utxos and keeps the chain clean
-          self.CleanUpUtxo()
-          self.CheckChainValid(genesisTransaction)
-          
-          return self.UTXOs
+              #  Send reply back to client
+              socket.send(b"World")
           
           
      #clears spent transactions
@@ -185,8 +191,15 @@ class HephDex:
                     newUTXO[i] = {'Transaction':self.UTXOs[i]['Transaction']}
           
           self.UTXOs = newUTXO
+     
+     
           
           
      
 Heph = HephDex()
-a = Heph.HexCoin()
+Heph.initCoin()
+#thread = Thread(target = Heph.StartNetworkThread)
+#thread.setDaemon(True)
+#thread.start()
+
+
