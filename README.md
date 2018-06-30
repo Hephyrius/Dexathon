@@ -8,7 +8,8 @@ Language : Python, Purpose: An implementation where rapid experimentation is at 
 
 ## Note From Creator:
 
-The Dexathon was a really educational project/competition. As a single person entrant, I had to wear many hats and learn a lot of technologies that i hadn't worked with much if at all before. Especially networking... I hate Networking. Sadly my marathon of coding did not end in completing the chain in time. 
+The Dexathon was a really educational project/competition. As a single person entrant, I had to wear many hats and learn a lot of technologies that i hadn't worked with much if at all before. Especially networking... I hate Networking. If a few more hours where given, the Simulator would be working in a manner that is indestinguistable from a networked chain.
+Overall the implementation covers a large area, I did end up losing site towards the end which lead to the size of the code balooning like crazy 
 
 ## Feature Status
 
@@ -24,18 +25,18 @@ Recieving Native Coin : Working
 
 ### Token Based
 
-Creating New Tokens for a Fee : Working
-Freezing Tokens : Working
-Burning Tokens : Working
+Creating New Tokens for a Fee : Working - See PyDex/Main.py
+Freezing Tokens : Working - See PyDex/Main.py
+Burning Tokens : Working - See PyDex/Main.py
 
 ### Dex Functions
 
-Creating Limit Orders : Working 
-Settling Limit Orders : Working with minor bugs
+Creating Limit Orders : Working - See PyDex/Main.py
+Settling Limit Orders : Working -- with minor bugs - See PyDex/Main.py
 
 ### Consensus Based:
-Node Networking : Semi-Working/Unfinished
-Consensus : Semi-Working/Unfinished
+Node Networking : Semi-Working/Unfinished - See PyDex/Client.py
+Consensus : Semi-Working/Unfinished - See PyDex/Simulator.py
 
 ## The structure of the entry is as follows
 
@@ -49,11 +50,15 @@ PyDex/chain.csv - Left over from earlier testing. This might become the save loc
 
 PyDex/Client.py - This is the interactive client that should can be used. It combines the Node Functionality with the Core Blockchain Functionality that is tested in Main.py. It is essentially a hybrid of Main.py, Node.py and Wallet.py
 
+PyDex/LocalNode.py - This class is used in the consensys-simulator version of the blockchain, in order to simulate a staked node that is creating or vetting blocks. 
+
 PyDex/Main.py - This is the main test blockchain, used for testing features for a single node blockchain with no real consensus. All changes are tested here before being added to the client.py file. Check this out to see whats going on under the hood.
 
 PyDex/NetworkedMain.py - leftover file from earlier prototyping, this is what client.py took over.
 
 PyDex/Node.py - This class deals with networking functions as and when they are needed
+
+PyDex/Simulator.py - This class is a last minute addition that aims to recreate/simulate the Client.py class without the added complexities that networking created. It has a simulated consensus that can be described as hybrid between BlockProducer and delegated POS
 
 PyDex/Transaction.py - This class deals with creating and dealing with transactions
 
@@ -65,7 +70,7 @@ PyDex/UtilFunctions.py - This is used to hash, sign, verify as well as other mis
 
 PyDex/Wallet.py - This provides core crypto functions such as creating a keypair, creating different transaction types ect.
 
-PyDex_Experi/ - Same Structure as above, but with some changes that reduced stability of client.py
+Truncated_Experiment/ - This folder a similar Structure as pydex shown above, but with some changes that reduced stability of client.py
 
 ## Key Features
 
@@ -96,10 +101,8 @@ PyDex_Experi/ - Same Structure as above, but with some changes that reduced stab
 
 ## Note 
 
-* This Implementation is from scratch with some influence from several sources. Please see the sources section for further details
-* This Dexathon entry works in a consensus-less single node environment. However networking has failed, which means that the Consesnsus/Client implementation is flimsy and easily falls apart!
-* Most of the Core functions (other than consensus) have been implemented.
+* This Implementation is from scratch with some influence from several sources such as medium posts
+* This Dexathon entry works in a consensus-less single node environment, a multi-node simulated network and a multi-node networked environment.
+* Most of the Core functions (other than consensus) have been implemented in one of the three main chains [PyDex/Main.py, PyDex/Client.py, PyDex/Simulator.py]. So i hope some of my ideas are considered :D
 
-## Noteable Reference:
-[1] https://medium.com/programmers-blockchain/creating-your-first-blockchain-with-java-part-2-transactions-2cdac335e0ce
 

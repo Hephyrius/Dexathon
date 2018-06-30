@@ -142,7 +142,8 @@ class LocalClient():
                               print("Output sent does not reference the reciever")
                               return False
                     
-          print("Blockchain is Valid")     
+          print("Blockchain is Valid")    
+          self.UTXOs = tempUTXO
           return True
      
      #used to simulate a chain
@@ -286,13 +287,14 @@ class LocalClient():
      def ResetToNetworkLevel(self):
           
           self.Blockchain = []
-          self.AlternativeCoins = []
-          self.OpenOrders = []
-          self.UTXOs = dict()
-          self.Markets = []
+          self.AlternativeCoins = self.Network.AlternativeCoins
+          self.OpenOrders = self.Network.OpenOrders
+          self.UTXOs = self.Network.UTXOs
+          self.Markets = self.Network.Markets
           
           for i in self.Network.Blockchain:
                self.AddBlock(i)
+
      
      #Create a Block
      def CreateBlock(self):

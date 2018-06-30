@@ -158,8 +158,8 @@ class Simulator():
           while True:
 
                if self.State == 0:
-                    transactionSim = Thread(target = self.SimulateFundSendTransactions)
-                    transactionSim.start()
+#                    transactionSim = Thread(target = self.SimulateFundSendTransactions)
+#                    transactionSim.start()
                     
                     self.ConstructorNode = 0
                     self.ValidatorNodes = []
@@ -169,18 +169,16 @@ class Simulator():
                     self.HoldElection()
                     
                     for i in range(len(self.nodes)):
-                         
+                         #this resets the nodes states, so they are inline with the states of "Master/Block Producer"
+                         #This is not eally neaded and it is VERY INTENSIVE
                          self.nodes[i].ResetToNetworkLevel()
-                    
-                    
-                    
-                    time.sleep(1)
                     
                     for i in range(len(self.nodes)):
 
                          if self.ElectedNode == i:
                               print("Elected")
                               self.ConstructorNode = self.nodes[i]
+                              #self.ConstructorNode = self
                               
                          else:
                               
@@ -193,7 +191,6 @@ class Simulator():
                     
                     self.ConstructorNode.CreateBlock()
                     self.CandidateBlocks.append(self.ConstructorNode.Blockchain[len(self.ConstructorNode.Blockchain)-1])
-                    time.sleep(1)
                     self.State = 2
                
                #get the validators to validate the chain
@@ -216,7 +213,9 @@ class Simulator():
                     #if half the nodes are saying yes, then add it to the block chain
                     try:
                          if count/len(validations) >=0.5:
+                              #self.CandidateBlocks[0].ProcessTransactions(self)
                               self.AddBlock(self.CandidateBlocks[0])
+                              self.CheckChainValid()
                               #self.LastBlockHash = self.CandidateBlocks[0].BlockHash
                               for i in self.CandidateBlocks[i].transactions:
                                    if i in self.TransactionQueue:
@@ -235,18 +234,20 @@ class Simulator():
           while(True):
                time.sleep(0.5)
                r = int(random.randrange(0, len(self.nodes)-1))
-
+               r1 = r
+               
+               while r == r1:
+                    r1 = int(random.randrange(0, len(self.nodes)-1))
+               
+               
                value = random.uniform(0.5, 15)
                
-               newTx = self.Coinbase.SendFunds(self.nodes[r].MainWallet.PEMPublicKey.decode(), value, self)
+               newTx = self.nodes[r].MainWallet.SendFunds(self.nodes[r1].MainWallet.PEMPublicKey.decode(), value, self)
                self.AddTransactionToQueue(newTx)
                
-               
-          
-     
           #Create a Block
      def CreateBlock(self):
-          
+          print(self.Blockchain[len(self.Blockchain)-1].BlockHash)
           newBlock = bl.Block(self.Blockchain[len(self.Blockchain)-1].BlockHash)
           newBlock.validator = self.Coinbase.PEMPublicKey # might not need this?
           
@@ -260,11 +261,91 @@ class Simulator():
           self.AddBlock(newBlock)
           self.CandidateBlocks.append(newBlock)
           
+     #verify the blockchain integrity
+     def CheckChainValid(self):
+          genesisTransaction = self.Blockchain[0].transactions[0]
+          #check that the chain is solid
+          tempUTXO = dict()
+          tempUTXO[genesisTransaction.TransactionOutputs[0].Id] = {"Transaction":genesisTransaction.TransactionOutputs[0]}
           
+          for i in range(1,len(self.Blockchain)):
+               
+               
+               currentBlock = self.Blockchain[i]
+               previousBlock = self.Blockchain[i-1]
+               
+               if currentBlock.BlockHash != currentBlock.calculateHash():
+                    print("Different current and calculated hashes")
+                    return False
+               
+               if currentBlock.PreviousHash != previousBlock.BlockHash:
+                    print("Previous and Current hashes are different")
+                    print(currentBlock.PreviousHash)
+                    print(previousBlock.BlockHash)
+                    #time.sleep(1)
+                    #print(i)
+                    
+                    return False
+               
+               
+               for j in currentBlock.transactions:
+                    
+                    currentTransaction = j
+                    
+                    if currentTransaction.TransactionType == 0:
+                    
+                         if currentTransaction.GetInputsValue() != currentTransaction.GetOutputsValue():
+                              print("Inputs are not equal to outputs")
+                              return False
+                         
+                         
+                         if currentTransaction.VerifyTransactionSignature() == False:
+                              
+                              print("Unable to verify Transaction")
+                              return False
+                         
+                         for k in currentTransaction.TransactionInputs:
+                              
+                              tempOutput = tempUTXO[k.TransactionOutputId]
+                              
+                              if tempOutput == None:
+                                   print("Input Transaction Missing")
+                              
+                              if(k.UTXO.Value != tempOutput['Transaction'].Value):
+                                   print("Referenced input used in transaction is not valud")
+                              
+                              tempUTXO.pop(k.TransactionOutputId)
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              tempUTXO[k.Id] = {"Transaction":k}
+                         
+                         hasRecipient = False
+                         hasSender = False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              if k.Recipient == currentTransaction.Recipient:
+                                   hasRecipient = True
+                                   
+                              if k.Recipient == currentTransaction.Sender:
+                                   hasSender = True
+                         
+                         if hasSender == False:
+                              
+                              print("Output residual do not reference the sender")
+                              return False
+                         
+                         if hasRecipient == False:
+                              
+                              print("Output sent does not reference the reciever")
+                              return False
+                    
+          print("Blockchain is Valid")    
+          self.UTXOs = tempUTXO
+          return True
           
-          
-          
-          
+       #%%   
 
 Simulator()
 

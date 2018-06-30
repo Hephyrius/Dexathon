@@ -60,3 +60,14 @@ class Block:
           print("Transaction added to block")
           return True
      
+     def ProcessTransactions(self, MainChain):
+          for i in self.transactions:
+               if i == None:
+                    return False
+               
+               if self.PreviousHash != "0":
+                    if i.ProcessTransaction(MainChain) == False:
+                         print("Transaction failed to be processed, discarded")
+                         return False
+          
+          
