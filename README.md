@@ -11,17 +11,29 @@ Language : Python, Purpose: An implementation where rapid experimentation is at 
 ReadMe.Md - This file!
 
 PyDex/
+
 PyDex/Block.py - Class implementation of a block
+
 PyDex/chain.csv - Left over from earlier testing. This might become the save location for the blockchain when storing to the fs. still havent decided
+
 PyDex/Client.py - This is the interactive client that should can be used. It combines the Node Functionality with the Core Blockchain Functionality that is tested in Main.py. It is essentially a hybrid of Main.py, Node.py and Wallet.py
+
 PyDex/Main.py - This is the main test blockchain, used for testing features for a single node blockchain with no real consensus. All changes are tested here before being added to the client.py file. Check this out to see whats going on under the hood.
+
 PyDex/NetworkedMain.py - leftover file from earlier prototyping, this is what client.py took over.
+
 PyDex/Node.py - This class deals with networking functions as and when they are needed
+
 PyDex/Transaction.py - This class deals with creating and dealing with transactions
+
 PyDex/TransactionInput.py - This is part of the UTXO model used
+
 PyDex/TransactionOutput.py - This is part of the UTXO model used
+
 PyDex/UtilFunctions.py - This is used to hash, sign, verify as well as other misc helper functions
+
 PyDex/Wallet.py - This provides core crypto functions such as creating a keypair, creating different transaction types ect.
+
 
 ## Key Features
 
