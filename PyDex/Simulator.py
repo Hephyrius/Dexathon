@@ -92,7 +92,7 @@ class Simulator():
      
      #give spending money to the blocks
      def DistributeFunds(self):
-          block1 = bl.Block(self.Blockchain[len(self.Blockchain)-1])
+          block1 = bl.Block(self.Blockchain[len(self.Blockchain)-1].BlockHash)
           for i in self.KnowAddresses:
                block1.AddTransaction(self.Coinbase.SendFunds(i, 1000, self), self)
           
@@ -160,16 +160,16 @@ class Simulator():
                if self.State == 0:
                     self.ConstructorNode = 0
                     self.ValidatorNodes = []
+                    self.CandidateBlocks = []
                     
                     #elect a node
                     self.HoldElection()
                     
                     for i in range(len(self.nodes)):
-                         self.nodes[i].Blockchain = self.Blockchain
-                         self.nodes[i].AlternativeCoins = self.AlternativeCoins
-                         self.nodes[i].OpenOrders = self.OpenOrders 
-                         self.nodes[i].UTXOs = self.UTXOs
-                         self.nodes[i].Markets = self.Markets
+                         
+                         self.nodes[i].ResetToNetworkLevel()
+                    
+                    
                     
                     time.sleep(1)
                     
@@ -188,8 +188,8 @@ class Simulator():
                #spend 5 seconds creating a block
                elif self.State == 1:
                     
-                    self.CreateBlock()
-                    #self.CandidateBlocks.append(self.ConstructorNode.Blockchain[len(self.ConstructorNode.Blockchain)-1])
+                    self.ConstructorNode.CreateBlock()
+                    self.CandidateBlocks.append(self.ConstructorNode.Blockchain[len(self.ConstructorNode.Blockchain)-1])
                     time.sleep(1)
                     self.State = 2
                

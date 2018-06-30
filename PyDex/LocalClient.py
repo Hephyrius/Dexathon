@@ -80,10 +80,12 @@ class LocalClient():
                     return False
                
                if currentBlock.PreviousHash != previousBlock.BlockHash:
+                    print("Previous and Current hashes are different")
                     print(currentBlock.PreviousHash)
                     print(previousBlock.BlockHash)
-                    print(i)
-                    print("Previous and Current hashes are different")
+                    time.sleep(1)
+                    #print(i)
+                    
                     return False
                
                
@@ -294,8 +296,10 @@ class LocalClient():
      
      #Create a Block
      def CreateBlock(self):
+          print(self.Blockchain[len(self.Blockchain)-1].BlockHash)
+          newBlock = bl.Block(self.Blockchain[len(self.Blockchain)-1].BlockHash)
+          newBlock.validator = self.MainWallet.PEMPublicKey # might not need this?
           
-          newBlock = bl.Block(self.Network.LastBlock.BlockHash)
           timeout = time.time() + 5
           while time.time() <= timeout:
                for i in self.Network.TransactionQueue:
