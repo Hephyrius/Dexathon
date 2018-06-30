@@ -60,7 +60,7 @@ class UtilFunctions:
                treeLayer = []
                
                for i in range(1,len(previousLayer)):
-                    treeLayer.append(applySha256(previousLayer[i-1]+previousLayer[i]))
+                    treeLayer.append(UtilFunctions.applySha256(UtilFunctions, previousLayer[i-1]+previousLayer[i]))
                
                count = len(treeLayer)
                previousLayer = treeLayer

@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sat Jun 30 18:54:03 2018
+
+@author: Khera
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Sat Jun 23 02:47:27 2018
 
 @author: Harnick Khera github/hephyrius
 
-main class for running and operating the blockchain
+Local Client used in Simulator to demonstrate consensus and blockchain running
 
 """
 
@@ -13,7 +20,7 @@ import Transaction as txn
 import TransactionInput as ins
 import TransactionOutput as outs
 import Wallet as wlt
-
+import time
 import UtilFunctions as utils
 import json
 from json import JSONEncoder
@@ -25,8 +32,9 @@ class myencoder(JSONEncoder):
             return o.BlockHash, o.Data, o.PreviousHash, o.TimeStamp
      
 
-class HephDex:
+class LocalClient():
      
+     Network = []
      Blockchain = []
      AlternativeCoins = []
      OpenOrders = []
@@ -35,13 +43,20 @@ class HephDex:
      difficulty = 1
      MinimumTransactionValue = 0.001
      UTXOs = dict()
+     MainWallet = ""
+     MakeBlock = ""
+     
      #init the blockchain
-     def __init__(self):
+     def __init__(self, _Network):
           self.Blockchain = []
           self.AlternativeCoins = []
           self.OpenOrders = []
           self.UTXOs = dict()
           self.Markets = []
+          
+          self.Network = _Network
+          self.MakeBlock = False
+          self.MainWallet = wlt.Wallet()
      
      def AddBlock(self, NewBlock):
           NewBlock.MineBlock(0)
@@ -49,11 +64,13 @@ class HephDex:
      
      #verify the blockchain integrity
      def CheckChainValid(self, genesisTransaction):
+          #genesisTransaction = self.Blockchain[0].transactions[0]
           #check that the chain is solid
           tempUTXO = dict()
           tempUTXO[genesisTransaction.TransactionOutputs[0].Id] = {"Transaction":genesisTransaction.TransactionOutputs[0]}
           
           for i in range(1,len(self.Blockchain)):
+               
                
                currentBlock = self.Blockchain[i]
                previousBlock = self.Blockchain[i-1]
@@ -63,6 +80,9 @@ class HephDex:
                     return False
                
                if currentBlock.PreviousHash != previousBlock.BlockHash:
+                    print(currentBlock.PreviousHash)
+                    print(previousBlock.BlockHash)
+                    print(i)
                     print("Previous and Current hashes are different")
                     return False
                
@@ -71,53 +91,55 @@ class HephDex:
                     
                     currentTransaction = j
                     
-                    if currentTransaction.GetInputsValue() != currentTransaction.GetOutputsValue():
-                         print("Inputs are not equal to outputs")
-                         return False
+                    if currentTransaction.TransactionType == 0:
                     
-                    
-                    if currentTransaction.VerifyTransactionSignature() == False:
+                         if currentTransaction.GetInputsValue() != currentTransaction.GetOutputsValue():
+                              print("Inputs are not equal to outputs")
+                              return False
                          
-                         print("Unable to verify Transaction")
-                         return False
-                    
-                    for k in currentTransaction.TransactionInputs:
                          
-                         tempOutput = tempUTXO[k.TransactionOutputId]
-                         
-                         if tempOutput == None:
-                              print("Input Transaction Missing")
-                         
-                         if(k.UTXO.Value != tempOutput['Transaction'].Value):
-                              print("Referenced input used in transaction is not valud")
-                         
-                         tempUTXO.pop(k.TransactionOutputId)
-                    
-                    for k in currentTransaction.TransactionOutputs:
-                         
-                         tempUTXO[k.Id] = {"Transaction":k}
-                    
-                    hasRecipient = False
-                    hasSender = False
-                    
-                    for k in currentTransaction.TransactionOutputs:
-                         
-                         if k.Recipient == currentTransaction.Recipient:
-                              hasRecipient = True
+                         if currentTransaction.VerifyTransactionSignature() == False:
                               
-                         if k.Recipient == currentTransaction.Sender:
-                              hasSender = True
-                    
-                    if hasSender == False:
+                              print("Unable to verify Transaction")
+                              return False
                          
-                         print("Output residual do not reference the sender")
-                         return False
-                    
-                    if hasRecipient == False:
+                         for k in currentTransaction.TransactionInputs:
+                              
+                              tempOutput = tempUTXO[k.TransactionOutputId]
+                              
+                              if tempOutput == None:
+                                   print("Input Transaction Missing")
+                              
+                              if(k.UTXO.Value != tempOutput['Transaction'].Value):
+                                   print("Referenced input used in transaction is not valud")
+                              
+                              tempUTXO.pop(k.TransactionOutputId)
                          
-                         print("Output sent does not reference the reciever")
-                         return False
-               
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              tempUTXO[k.Id] = {"Transaction":k}
+                         
+                         hasRecipient = False
+                         hasSender = False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              if k.Recipient == currentTransaction.Recipient:
+                                   hasRecipient = True
+                                   
+                              if k.Recipient == currentTransaction.Sender:
+                                   hasSender = True
+                         
+                         if hasSender == False:
+                              
+                              print("Output residual do not reference the sender")
+                              return False
+                         
+                         if hasRecipient == False:
+                              
+                              print("Output sent does not reference the reciever")
+                              return False
+                    
           print("Blockchain is Valid")     
           return True
      
@@ -257,20 +279,36 @@ class HephDex:
                     newOrder.append(i)
                     
           self.OpenOrders = newOrder
+     
+     #reset the node to the current best stable
+     def ResetToNetworkLevel(self):
           
-#     #clears spent transactions
-#     def CleanUpUtxo(self):
-#          
-#          newUTXO = dict()
-#          
-#          for i in self.UTXOs:
-#               
-#               if self.UTXOs[i]['Transaction'].Spent == False:
-#                    newUTXO[i] = {'Transaction':self.UTXOs[i]['Transaction']}
-#          
-#          self.UTXOs = newUTXO
-#          
+          self.Blockchain = []
+          self.AlternativeCoins = []
+          self.OpenOrders = []
+          self.UTXOs = dict()
+          self.Markets = []
+          
+          for i in self.Network.Blockchain:
+               self.AddBlock(i)
+     
+     #Create a Block
+     def CreateBlock(self):
+          
+          newBlock = bl.Block(self.Network.LastBlock.BlockHash)
+          timeout = time.time() + 5
+          while time.time() <= timeout:
+               for i in self.Network.TransactionQueue:
+                    
+                    if i not in newBlock.transactions:
+                         newBlock.AddTransaction(i, self)
+          
+          self.AddBlock(newBlock)
+          
+          #self.Network.CandidateBlocks.append(newBlock)
+               
+               
+          
           
      
-Heph = HephDex()
-a, b = Heph.HexCoin()
+     
