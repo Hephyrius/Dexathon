@@ -231,7 +231,9 @@ class Simulator():
           #Create a Block
      def CreateBlock(self):
           
-          newBlock = bl.Block(self.Blockchain[len(self.Blockchain)-1])
+          newBlock = bl.Block(self.Blockchain[len(self.Blockchain)-1].BlockHash)
+          newBlock.validator = self.Coinbase.PEMPublicKey # might not need this?
+          
           timeout = time.time() + 5
           while time.time() <= timeout:
                for i in self.TransactionQueue:
