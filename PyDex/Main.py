@@ -380,6 +380,37 @@ class HephDex:
                               print("Output sent does not reference the reciever")
                               return False
                          
+                    if currentTransaction.TransactionType == 5:
+                    
+                         if currentTransaction.VerifyTransactionSignature() == False:
+                              
+                              print("Unable to verify Transaction")
+                              return False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              tempUTXO[k.Id] = {"Transaction":k}
+                         
+                         hasRecipient = False
+                         hasSender = False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              if k.Recipient == currentTransaction.Recipient:
+                                   hasRecipient = True
+                                   
+                              if k.Recipient == currentTransaction.Sender:
+                                   hasSender = True
+                         
+                         if hasSender == False:
+                              
+                              print("Output residual do not reference the sender")
+                              return False
+                         
+                         if hasRecipient == False:
+                              
+                              print("Output sent does not reference the reciever")
+                              return False
                          
           print("Blockchain is Valid")    
           self.UTXOs = tempUTXO

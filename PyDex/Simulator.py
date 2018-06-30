@@ -50,7 +50,7 @@ class Simulator():
           self.LastBlock = ""
           
           ##
-          self.InitNodes(5)
+          self.InitNodes(3)
           self.Genesis()
           self.DistributeFunds()
           #self.PrintBalances()
@@ -176,7 +176,7 @@ class Simulator():
                     for i in range(len(self.nodes)):
 
                          if self.ElectedNode == i:
-                              print("Elected")
+                              print("---- Elected addres is ----   " + self.nodes[self.ElectedNode].MainWallet.getPublicKeyString())
                               self.ConstructorNode = self.nodes[i]
                               #self.ConstructorNode = self
                               
@@ -213,6 +213,8 @@ class Simulator():
                     #if half the nodes are saying yes, then add it to the block chain
                     try:
                          if count/len(validations) >=0.5:
+                              print("----- New Block is Valid -----")
+                              print("----- Adding Block   " + self.CandidateBlocks[0].BlockHash + "   to Master Block Chain -----")
                               #self.CandidateBlocks[0].ProcessTransactions(self)
                               self.AddBlock(self.CandidateBlocks[0])
                               self.CheckChainValid()
@@ -229,21 +231,15 @@ class Simulator():
      def AddTransactionToQueue(self, Txn):
           self.TransactionQueue.append(Txn)
      
-     #simulate some transactions
+     
+     #simulate some transactions slowly
      def SimulateFundSendTransactions(self):
           while(True):
-               time.sleep(0.5)
-               r = int(random.randrange(0, len(self.nodes)-1))
-               r1 = r
+               time.sleep(10)
+               for i in self.KnowAddresses:
+                    self.AddTransactionToQueue(self.Coinbase.SendFunds(i, 5, self))
                
-               while r == r1:
-                    r1 = int(random.randrange(0, len(self.nodes)-1))
-               
-               
-               value = random.uniform(0.5, 15)
-               
-               newTx = self.nodes[r].MainWallet.SendFunds(self.nodes[r1].MainWallet.PEMPublicKey.decode(), value, self)
-               self.AddTransactionToQueue(newTx)
+
                
           #Create a Block
      def CreateBlock(self):
@@ -521,6 +517,37 @@ class Simulator():
                               print("Output sent does not reference the reciever")
                               return False
                          
+                    if currentTransaction.TransactionType == 5:
+                    
+                         if currentTransaction.VerifyTransactionSignature() == False:
+                              
+                              print("Unable to verify Transaction")
+                              return False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              tempUTXO[k.Id] = {"Transaction":k}
+                         
+                         hasRecipient = False
+                         hasSender = False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              if k.Recipient == currentTransaction.Recipient:
+                                   hasRecipient = True
+                                   
+                              if k.Recipient == currentTransaction.Sender:
+                                   hasSender = True
+                         
+                         if hasSender == False:
+                              
+                              print("Output residual do not reference the sender")
+                              return False
+                         
+                         if hasRecipient == False:
+                              
+                              print("Output sent does not reference the reciever")
+                              return False
                          
           print("Blockchain is Valid")    
           self.UTXOs = tempUTXO
