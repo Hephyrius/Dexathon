@@ -70,7 +70,7 @@ class Wallet():
           
           for i in MainChain.UTXOs:
                
-               if MainChain.UTXOs[i]['Transaction'].Recipient == self.PEMPublicKey.decode() and MainChain.UTXOs[i]['Transaction'].Spent == False and MainChain.UTXOs[i]['Transaction'].TransactionType == 0:
+               if MainChain.UTXOs[i]['Transaction'].Recipient == self.PEMPublicKey.decode() and MainChain.UTXOs[i]['Transaction'].Frozen == False and MainChain.UTXOs[i]['Transaction'].TransactionType == 0:
                     self.UTXOs[i] = {"Transaction":MainChain.UTXOs[i]['Transaction']}
                     total+= MainChain.UTXOs[i]['Transaction'].Value
           
@@ -95,6 +95,62 @@ class Wallet():
                     break
           
           transaction = txn.Transaction(self.PEMPublicKey.decode(), _RecipientPublic, _Value, 0, inputs)
+          transaction.GenerateTransactionSignature(self.PrivateKey)
+          
+          #remove used UTXO from the wallet
+          for i in inputs:
+               self.UTXOs.pop(i)
+          
+          return transaction
+     
+     #function responsible for sending tokens on the chain
+     def SendToken(self, _RecipientPublic, _Value, Coin, MainChain):
+          
+          if(self.GetTokenBalance(MainChain, Coin) < _Value):
+               print("Not Enough Funds")
+               return None
+          
+          #basically cycle thru the outputs, adding to the total and input list until done
+          inputs = []
+          total = 0
+          
+          for i in self.UTXOs:
+               if MainChain.UTXOs[i]['Transaction'].TransactionType == 2 and MainChain.UTXOs[i]['Transaction'].Data == Coin:
+                    inputs.append(i)
+                    total += MainChain.UTXOs[i]['Transaction'].Value
+                    if total > _Value:
+                         break
+          
+          MiscData = {"CoinHash":Coin}
+          transaction = txn.Transaction(self.PEMPublicKey.decode(), _RecipientPublic, _Value, 2, inputs, MiscData)
+          transaction.GenerateTransactionSignature(self.PrivateKey)
+          
+          #remove used UTXO from the wallet
+          for i in inputs:
+               self.UTXOs.pop(i)
+          
+          return transaction
+     
+     #function responsible for burning tokens on the chain
+     def BurnToken(self, _Value, Coin, MainChain):
+          
+          if(self.GetTokenBalance(MainChain, Coin) < _Value):
+               print("Not Enough Funds")
+               return None
+          
+          #basically cycle thru the outputs, adding to the total and input list until done
+          inputs = []
+          total = 0
+          
+          for i in self.UTXOs:
+               if MainChain.UTXOs[i]['Transaction'].TransactionType == 2 and MainChain.UTXOs[i]['Transaction'].Data == Coin:
+                    inputs.append(i)
+                    total += MainChain.UTXOs[i]['Transaction'].Value
+                    if total > _Value:
+                         break
+          
+          MiscData = {"CoinHash":Coin}
+          transaction = txn.Transaction(self.PEMPublicKey.decode(), "0x0", _Value, 3, inputs, MiscData)
           transaction.GenerateTransactionSignature(self.PrivateKey)
           
           #remove used UTXO from the wallet
@@ -131,11 +187,9 @@ class Wallet():
                self.UTXOs.pop(i)
           
           return transaction
-     
-     
-     
+      
      #get the balance of the wallet
-     def getCoinBalance(self, MainChain, Coin):
+     def GetTokenBalance(self, MainChain, Coin):
           
           self.UTXOs = dict()
           
@@ -149,8 +203,132 @@ class Wallet():
           
           return total
      
+          #get the balance of the wallet
+     def GetSpentableTokenBalance(self, MainChain, Coin):
+          
+          self.UTXOs = dict()
+          
+          total = 0
+          
+          for i in MainChain.UTXOs:
+               
+               if MainChain.UTXOs[i]['Transaction'].Recipient == self.PEMPublicKey.decode() and MainChain.UTXOs[i]['Transaction'].TransactionType == 2 and MainChain.UTXOs[i]['Transaction'].Data == Coin and MainChain.UTXOs[i]['Transaction'].Frozen == False:
+                    self.UTXOs[i] = {"Transaction":MainChain.UTXOs[i]['Transaction']}
+                    total+= MainChain.UTXOs[i]['Transaction'].Value
+          
+          return total
      
+     #freezetokens
+     def FreezeUnfreezeTokens(self, _Value, Coin, FreezeState, MainChain):
+          if FreezeState == True:
+               if(self.GetTokenBalance(MainChain, Coin) < _Value):
+                    print("Not Enough Funds")
+                    return None
+               
+               #basically cycle thru the outputs, adding to the total and input list until done
+               inputs = []
+               total = 0
+               
+               for i in self.UTXOs:
+                    if MainChain.UTXOs[i]['Transaction'].TransactionType == 2 and MainChain.UTXOs[i]['Transaction'].Data == Coin and MainChain.UTXOs[i]['Transaction'].Frozen == False:
+                         inputs.append(i)
+                         total += MainChain.UTXOs[i]['Transaction'].Value
+                         if total > _Value:
+                              break
+               
+               MiscData = {"CoinHash":Coin, "Freeze":FreezeState}
+               transaction = txn.Transaction(self.PEMPublicKey.decode(), "0x0", _Value, 4, inputs, MiscData)
+               transaction.GenerateTransactionSignature(self.PrivateKey)
+               
+               #remove used UTXO from the wallet
+               for i in inputs:
+                    self.UTXOs.pop(i)
+                    
+          else:
+               if(self.GetTokenBalance(MainChain, Coin) < _Value):
+                    print("Not Enough Funds to unfreeze")
+                    return None
+               
+               #basically cycle thru the outputs, adding to the total and input list until done
+               inputs = []
+               total = 0
+               
+               for i in self.UTXOs:
+                    if MainChain.UTXOs[i]['Transaction'].TransactionType == 2 and MainChain.UTXOs[i]['Transaction'].Data == Coin and MainChain.UTXOs[i]['Transaction'].Frozen == True:
+                         inputs.append(i)
+                         total += MainChain.UTXOs[i]['Transaction'].Value
+                         if total > _Value:
+                              break
+               
+               MiscData = {"CoinHash":Coin, "Freeze":FreezeState}
+               transaction = txn.Transaction(self.PEMPublicKey.decode(), "0x0", _Value, 4, inputs, MiscData)
+               transaction.GenerateTransactionSignature(self.PrivateKey)
+               
+               #remove used UTXO from the wallet
+               for i in inputs:
+                    self.UTXOs.pop(i)
+          
+          return transaction
      
+     #function to create buy and sell orders
+     def CreateOrder(self, CoinHash, Rate, Total, BuyFlag, MainChain):
+          
+          if BuyFlag == True:
+               
+               val = Total*Rate
+               
+               if self.getBalance(MainChain) < val:
+                    
+                    print("not enough native coin to create order")
+                    return None               
+          
+
+               #basically cycle thru the outputs, adding to the total and input list until done
+               inputs = []
+               total = 0
+               
+               for i in self.UTXOs:
+                    
+                    inputs.append(i)
+                    total += MainChain.UTXOs[i]['Transaction'].Value
+                    if total > val:
+                         break
+               
+               MiscData = {"CoinHash":CoinHash, "Rate":Rate, "Total":Total, "BuyFlag":BuyFlag}
+               transaction = txn.Transaction(self.PEMPublicKey.decode(), "0x0", 0, 5, inputs, MiscData)
+               transaction.GenerateTransactionSignature(self.PrivateKey)
+               
+               return transaction
+          
+          else:
+               
+               val = Total
+               
+               if self.GetTokenBalance(MainChain, CoinHash) < val:
+                    
+                    print("not enough Tokens to trade order")
+                    return None               
+               
+
+               #basically cycle thru the outputs, adding to the total and input list until done
+               inputs = []
+               total = 0
+               
+               for i in self.UTXOs:
+                    if MainChain.UTXOs[i]['Transaction'].TransactionType == 2 and MainChain.UTXOs[i]['Transaction'].Data == CoinHash:
+                         inputs.append(i)
+                         total += MainChain.UTXOs[i]['Transaction'].Value
+                         if total > val:
+                              break
+               
+               MiscData = {"CoinHash":CoinHash, "Rate":Rate, "Total":Total, "BuyFlag":BuyFlag}
+               transaction = txn.Transaction(self.PEMPublicKey.decode(), "0x0", 0, 5, inputs, MiscData)
+               transaction.GenerateTransactionSignature(self.PrivateKey)
+               
+               return transaction
+               
+               
+               
      
      
      

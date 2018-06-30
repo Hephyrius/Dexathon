@@ -13,7 +13,7 @@ class TransactionOutput():
      Recipient = ""
      Value = 0
      ParentTransactionId = ""
-     Spent = False
+     Frozen = False
      TransactionType = ""
      Data = ""
      
@@ -22,7 +22,7 @@ class TransactionOutput():
           self.Recipient = _recipient
           self.Value = _value
           self.ParentTransactionId = _parentTransactionId
-          self.Spent = False
+          self.Frozen = False
           self.TransactionType = _TransactionType
           self.Data = _Data
           self.Id = utils.UtilFunctions.applySha256(utils.UtilFunctions, str(self.Recipient)+"_"+str(self.Value)+"_"+str(self.ParentTransactionId)+"_"+str(self.TransactionType))

@@ -29,6 +29,8 @@ class HephDex:
      
      Blockchain = []
      AlternativeCoins = []
+     OpenOrders = []
+     Markets = []
      #temporarily a PoW approach while creating fundamentals. PoS is more complex!
      difficulty = 1
      MinimumTransactionValue = 0.001
@@ -36,7 +38,10 @@ class HephDex:
      #init the blockchain
      def __init__(self):
           self.Blockchain = []
+          self.AlternativeCoins = []
+          self.OpenOrders = []
           self.UTXOs = dict()
+          self.Markets = []
      
      def AddBlock(self, NewBlock):
           NewBlock.MineBlock(0)
@@ -167,38 +172,98 @@ class HephDex:
           print("balance of wallet b = " + str(walletB.getBalance(self)))
           
           #clears spent Utxos and keeps the chain clean
-          self.CleanUpUtxo()
+          #self.CleanUpUtxo()
           self.CheckChainValid(genesisTransaction)
           
           #block 4 tests creating a new coin
           block4 = bl.Block(block3.BlockHash)
-          print("balance of wallet a = " + str(walletB.getBalance(self)))
+          print("balance of wallet a = " + str(walletA.getBalance(self)))
           print("Creating a new coin")
           CoinTxn = walletA.CreateNewCoin(self, "HephCoin", "Heph", 100000)
           block4.AddTransaction(CoinTxn, self)
           self.AddBlock(block4)
           
           print("balance of wallet a = " + str(walletA.getBalance(self)))
-          print("coin balance of wallet a = " + str(walletA.getCoinBalance(self, self.AlternativeCoins[0])))
+          print("coin balance of wallet a = " + str(walletA.GetTokenBalance(self, self.AlternativeCoins[0])))
+          
+          #block 5 sends tokens from one wallet to another
+          block5 = bl.Block(block4.BlockHash)
+          print("coin balance of wallet a = " + str(walletA.GetTokenBalance(self, self.AlternativeCoins[0])))
+          print("coin balance of wallet b = " + str(walletB.GetTokenBalance(self, self.AlternativeCoins[0])))
+          print("sending 500.5050505 Tokens from wallet a to b")
+          TokenTransaction = walletA.SendToken(walletB.PEMPublicKey.decode(), 500.5050505, self.AlternativeCoins[0], self)
+          block5.AddTransaction(TokenTransaction, self)
+          self.AddBlock(block5)
+          
+          print("coin balance of wallet a = " + str(walletA.GetTokenBalance(self, self.AlternativeCoins[0])))
+          print("coin balance of wallet b = " + str(walletB.GetTokenBalance(self, self.AlternativeCoins[0])))
+          
+          print("coin balance of wallet b = " + str(walletB.GetTokenBalance(self, self.AlternativeCoins[0])))
+          print("Testing burning token by using the burn wallet function - This permenantly destroys the UTXOs")
+          block6 = bl.Block(block5.BlockHash)
+          BurnTransaction = walletB.BurnToken(0.5050505, self.AlternativeCoins[0], self)
+          block6.AddTransaction(BurnTransaction, self)
+          self.AddBlock(block6)
+          
+          print("spendable balance of wallet b = " + str(walletB.GetSpentableTokenBalance(self, self.AlternativeCoins[0])))
+          print("freezing some 60 tokens from wallet b")
+          block7 = bl.Block(block6.BlockHash)
+          FreezeTransaction = walletB.FreezeUnfreezeTokens(60,self.AlternativeCoins[0], True, self)
+          block7.AddTransaction(FreezeTransaction, self)
+          self.AddBlock(block7)
+          print("spentable token balance of wallet b = " + str(walletB.GetSpentableTokenBalance(self, self.AlternativeCoins[0])))
+          print("coin balance of wallet b = " + str(walletB.GetTokenBalance(self, self.AlternativeCoins[0])))
+          
+          print("unfreezing 30 tokens")
+          block8 = bl.Block(block7.BlockHash)
+          FreezeTransaction = walletB.FreezeUnfreezeTokens(22,self.AlternativeCoins[0], False, self)
+          block8.AddTransaction(FreezeTransaction, self)
+          self.AddBlock(block8)
+          print("spentable token balance of wallet b = " + str(walletB.GetSpentableTokenBalance(self, self.AlternativeCoins[0])))
+          print("coin balance of wallet b = " + str(walletB.GetTokenBalance(self, self.AlternativeCoins[0])))
+          
+          print("Testing Limit Order")
+          block9 = bl.Block(block8.BlockHash)
+          order = walletB.CreateOrder(self.AlternativeCoins[0], 0.1, 100, True, self)
+          block9.AddTransaction(order, self)
+          self.AddBlock(block9)
+          print("Buy Order Added")
+          
+          print("Testing Limit Order when matching order on the market")
+          print("Values before Trade")
+          
+          print("coin balance of wallet a = " + str(walletA.GetTokenBalance(self, self.AlternativeCoins[0])))
+          print("coin balance of wallet b = " + str(walletB.GetTokenBalance(self, self.AlternativeCoins[0])))
+          print("balance of wallet a = " + str(walletA.getBalance(self)))
+          print("balance of wallet b = " + str(walletB.getBalance(self)))
+          
+          block10 = bl.Block(block9.BlockHash)
+          order = walletA.CreateOrder(self.AlternativeCoins[0], 0.1, 10, False, self)
+          block10.AddTransaction(order, self)
+          self.AddBlock(block10)
+          
+          print("Balance After Trade")
+          print("coin balance of wallet a = " + str(walletA.GetTokenBalance(self, self.AlternativeCoins[0])))
+          print("coin balance of wallet b = " + str(walletB.GetTokenBalance(self, self.AlternativeCoins[0])))
+          print("balance of wallet a = " + str(walletA.getBalance(self)))
+          print("balance of wallet b = " + str(walletB.getBalance(self)))
+          
+          return self.UTXOs, self.OpenOrders
           
           
-          
-          return self.UTXOs
-          
-          
-     #clears spent transactions
-     def CleanUpUtxo(self):
-          
-          newUTXO = dict()
-          
-          for i in self.UTXOs:
-               
-               if self.UTXOs[i]['Transaction'].Spent == False:
-                    newUTXO[i] = {'Transaction':self.UTXOs[i]['Transaction']}
-          
-          self.UTXOs = newUTXO
-          
+#     #clears spent transactions
+#     def CleanUpUtxo(self):
+#          
+#          newUTXO = dict()
+#          
+#          for i in self.UTXOs:
+#               
+#               if self.UTXOs[i]['Transaction'].Spent == False:
+#                    newUTXO[i] = {'Transaction':self.UTXOs[i]['Transaction']}
+#          
+#          self.UTXOs = newUTXO
+#          
           
      
 Heph = HephDex()
-a = Heph.HexCoin()
+a, b = Heph.HexCoin()

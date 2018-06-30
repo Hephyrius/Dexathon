@@ -261,7 +261,7 @@ class Client():
           
           for i in self.UTXOs:
                
-               if self.UTXOs[i]['Transaction'].Spent == False:
+               if self.UTXOs[i]['Transaction'].Frozen == False:
                     newUTXO[i] = {'Transaction':self.UTXOs[i]['Transaction']}
           
           self.UTXOs = newUTXO
