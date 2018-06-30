@@ -126,7 +126,7 @@ class HephDex:
           walletB = wlt.Wallet()
           
           #send 100 coins to walleta
-          genesisTransaction = txn.Transaction(Coinbase.PublicKey, walletA.PublicKey, 100, 0, None)
+          genesisTransaction = txn.Transaction(Coinbase.PEMPublicKey.decode(), walletA.PEMPublicKey.decode(), 100, 0, None)
           genesisTransaction.GenerateTransactionSignature(Coinbase.PrivateKey)
           
           #give the transaction a manual hash
@@ -143,7 +143,7 @@ class HephDex:
           block1 = bl.Block(genesis.BlockHash)
           print("balance of wallet a = " + str(walletA.getBalance(self)))
           print("sending 40 from wallet a to b")
-          block1.AddTransaction(walletA.SendFunds(walletB.PublicKey, 40, self), self)
+          block1.AddTransaction(walletA.SendFunds(walletB.PEMPublicKey.decode(), 40, self), self)
           self.AddBlock(block1)
           
           print("balance of wallet a = " + str(walletA.getBalance(self)))
@@ -153,7 +153,7 @@ class HephDex:
           block2 = bl.Block(block1.BlockHash)
           print("balance of wallet a = " + str(walletA.getBalance(self)))
           print("spending more coins than in wallet")
-          block2.AddTransaction(walletA.SendFunds(walletB.PublicKey, 5, self), self)
+          block2.AddTransaction(walletA.SendFunds(walletB.PEMPublicKey.decode(), 5, self), self)
           self.AddBlock(block2)
           print("balance of wallet a = " + str(walletA.getBalance(self)))
           print("balance of wallet b = " + str(walletB.getBalance(self)))
@@ -162,7 +162,7 @@ class HephDex:
           block3 = bl.Block(block2.BlockHash)
           print("balance of wallet a = " + str(walletB.getBalance(self)))
           print("sending 40 from wallet a to b")
-          block3.AddTransaction(walletB.SendFunds(walletA.PublicKey, 25.5, self), self)
+          block3.AddTransaction(walletB.SendFunds(walletA.PEMPublicKey.decode(), 23.5, self), self)
           self.AddBlock(block3)
           print("balance of wallet a = " + str(walletA.getBalance(self)))
           print("balance of wallet b = " + str(walletB.getBalance(self)))

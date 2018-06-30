@@ -19,15 +19,17 @@ class Node():
      
      DiscoveredNodes = dict()
      KnownNodes = []
+     AcceptedBlockData = []
      ThisSocket = 0
      context = ""
      socket = ""
      Listeners = []
      BroadCasts = []
      obs = []
-
+     votes = []
      thread = ""
      nonce = 0
+     electedNode = ""
      
      #basic network constructor
      def __init__(self):
@@ -38,6 +40,9 @@ class Node():
           self.Listeners = []
           self.BroadCasts = []
           self.obs = []
+          self.votes = []
+          self.AcceptedBlockData = []
+          self.electedNode = ""
 
           try:
                self.ThisSocket = 5555
@@ -46,6 +51,7 @@ class Node():
                self.socket.bind("tcp://*:"+str(self.ThisSocket))
           except Exception as e:
                self.ThisSocket = random.randrange(5556,6000)
+               self.KnownNodes.append("tcp://localhost:5555")
                self.context = zmq.Context()
                self.socket = self.context.socket(zmq.REP)
                self.socket.bind("tcp://*:"+str(self.ThisSocket))
@@ -54,6 +60,7 @@ class Node():
           self.thread = Thread(target = self.Listen)
           #self.thread.setDaemon(True)
           self.thread.start()
+
      
      #register a node by broadcasting to the main node on 5555
      def RegisterNode(self):
@@ -64,6 +71,18 @@ class Node():
                sk.connect("tcp://localhost:5555")
                sk.send(("tcp://*:"+str(self.ThisSocket)).encode())
      
+     def SendGenesisToNewNode(self, message):
+          address = message.decode()
+          address= address.replace("*", "localhost")
+          address = address.replace("b'", "")
+          address = address.replace("'", "")
+          print(address)
+          ctx = zmq.Context()
+          sk = ctx.socket(zmq.REQ)
+          sk.connect(address)
+          sk.send(pickle.dumps(self.GenesisData))
+          print(type(pickle.loads(self.GenesisData)))
+          
      #register a node by broadcasting to the main node on 5555
      def SendDataMasterNode(self, data):
 
@@ -76,15 +95,40 @@ class Node():
           #send the new node to all nodes
      def SendDataToAll(self, data):
           for i in self.KnownNodes:
+               
                k = i.replace("*", "localhost")
                k = k.replace("b'", "")
                k = k.replace("'", "")
+               print(k)
                #print(k)
                ctx = zmq.Context()
                sk = ctx.socket(zmq.REQ)
                sk.connect(k)
                sk.send(data)
      #listen for new messages.
+     
+     def SendRestore(self):
+          
+          ctx = zmq.Context()
+          sk = ctx.socket(zmq.REQ)
+          sk.connect("tcp://localhost:5555")
+          data = "restore" + str(self.ThisSocket)
+          sk.send(data.encode())
+     
+     def Restore(self, message):
+          
+          message = message.decode()
+          message = message.replace("restore", "")
+          connectTo = "tcp://localhost:"+message
+          ctx = zmq.Context()
+          sk = ctx.socket(zmq.REQ)
+          sk.connect(connectTo)
+          for i in self.AcceptedBlockData:
+               
+               p = pickle.dumps(i)
+               sk.send(p)
+          
+          
      def Listen(self):
           
           while True:
@@ -93,13 +137,38 @@ class Node():
                     #print(message)
                     if "tcp" in str(message):
                          if message.decode() not in self.KnownNodes:
-                              #print("added to list")
+                              print("added to list")
                               self.KnownNodes.append(message.decode())
                               self.SendToAll(message.decode())
                               self.BroadCastKnownToNew(message.decode())
                               self.socket.send(b"acknowkedge")
+                                   
+                    elif "vote" in str(message):
+                         self.votes.append(message.decode())
+                         self.socket.send(b"acknowkedge")
+                         self.votes.replace("vote: ", "")
+                         
+                         
+                    elif "restore" in str(message):
+                         self.Restore(message)
+                         self.socket.send(b"acknowkedge")
+                         
+                    elif "elect" in str(message):
+                         self.electedNode = message.decode()
+                         self.socket.send(b"acknowkedge")
+                         self.electedNode.replace("elected:", "")
+                         print(self.electedNode )
+                         self.electedNode = int(self.electedNode)
+                         
+                    
                     else:
+                         #converted = pickle.loads(message)
                          #self.obs.append(message)
+#                         if type(converted) == type([]):
+#                              self.AcceptedBlockData = converted
+#                              self.socket.send(b"acknowkedge")
+                              
+                         #else:
                          self.obs.append(pickle.loads(message))
                          if self.ThisSocket == 5555:
                               
@@ -110,8 +179,12 @@ class Node():
                          self.socket.send(b"acknowkedge")
                          
                except Exception as e:
-                    self.socket.send(b"acknowkedge")
-                    #print(e)
+                    
+                    try:
+                         self.socket.send(b"acknowkedge")
+                    except Exception as e:
+                         
+                         print(e)
                     
      #send the new node to all nodes
      def SendToAll(self, message):
@@ -131,6 +204,8 @@ class Node():
           ctx = zmq.Context()
           sk = ctx.socket(zmq.REQ)
           new = newNode.replace("*", "localhost" )
+          new = new.replace("b'", "")
+          new = new.replace("'", "")
           sk.connect(new)
           
           for i in self.KnownNodes:
@@ -138,8 +213,10 @@ class Node():
                k = i.replace("b'", "")
                k = k.replace("'", "")
                sk.send(str(k).encode())
-                    
-
+     
+     #send entire chain to a new node
+     
+     
      #register a staked node to the network
      def RegisterStake(self, PublicKey, Address, Staked):
           
@@ -204,6 +281,66 @@ class Node():
                else:
                     count = count+1
           
-          return r, elected, count, node, percentages
-
-
+          return node
+     
+     def FakeElection(self):
+          
+          return 5555
+     
+     def SendAllElection(self):
+          vote = self.Election()
+          self.votes.append(vote)
+          self.SendToAll("vote: " + str(vote))
+     
+     #send your vote to everyone
+     def SendAllFakeElection(self):
+          
+          vote = self.FakeElection()
+          self.votes.append(vote)
+          self.SendToAll("vote: " + str(vote))
+     
+     #tally up and broadcast winners
+     def ElectionWinner(self):
+          
+          res = dict()
+          best = ""
+          mostVotes = 0
+          
+          for i in self.votes:
+               print(i)
+               
+               if i not in res:
+                    
+                    res[i] = {"votes": 1}
+               
+               else:
+                    res[i]["votes"] = res[i]["votes"]+1
+          
+          
+          for i in res:
+               if res[i]["votes"] > mostVotes:
+                    best = i
+                    mostVotes = res[i]["votes"]
+          
+          elected = "elected:" + str(best)
+          
+          self.SendDataToAll(elected.encode())
+          self.votes = []
+     
+     #hode an election, waiting 10 seconds before tallying up
+     def HoldElections(self):
+          self.SendAllFakeElection()
+          time.sleep(10)
+          self.ElectionWinner()
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          

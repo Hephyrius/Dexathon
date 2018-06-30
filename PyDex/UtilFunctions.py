@@ -8,8 +8,10 @@ Created on Sat Jun 23 02:56:37 2018
 class is responsible for utility functions such as hashing
 
 """
+import cryptography
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives.asymmetric import ec
 
 import hashlib
@@ -33,9 +35,10 @@ class UtilFunctions:
      
      #verify a signature using a public key, if no error is thrown we get a bool of true, else we get a false
      def verifyECDSignature(Publickey, Data, Signature):
-          
+          #print(Publickey)
+          Pub = load_pem_public_key(Publickey, default_backend())
           try:
-               Publickey.verify(Signature, Data, ec.ECDSA(hashes.SHA256()))
+               Pub.verify(Signature, Data, ec.ECDSA(hashes.SHA256()))
                return True
           except Exception as e:
                #print(e)

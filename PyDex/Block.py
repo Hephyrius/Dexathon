@@ -43,7 +43,7 @@ class Block:
           self.merkelRoot = utils.UtilFunctions.GetMerkelRoot(self.transactions)
           self.nonce = self.nonce+1
           self.BlockHash = self.calculateHash()
-          print("block mined: " + self.BlockHash)
+          print("block hash is: " + self.BlockHash)
      
      #add transactions to block
      def AddTransaction(self, transaction, MainChain):

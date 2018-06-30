@@ -70,7 +70,7 @@ class Wallet():
           
           for i in MainChain.UTXOs:
                
-               if MainChain.UTXOs[i]['Transaction'].Recipient == self.PublicKey and MainChain.UTXOs[i]['Transaction'].Spent == False:
+               if MainChain.UTXOs[i]['Transaction'].Recipient == self.PEMPublicKey.decode() and MainChain.UTXOs[i]['Transaction'].Spent == False:
                     self.UTXOs[i] = {"Transaction":MainChain.UTXOs[i]['Transaction']}
                     total+= MainChain.UTXOs[i]['Transaction'].Value
           
@@ -94,7 +94,7 @@ class Wallet():
                if total > _Value:
                     break
           
-          transaction = txn.Transaction(self.PublicKey, _RecipientPublic, _Value, 0, inputs)
+          transaction = txn.Transaction(self.PEMPublicKey, _RecipientPublic, _Value, 0, inputs)
           transaction.GenerateTransactionSignature(self.PrivateKey)
           
           #remove used UTXO from the wallet
