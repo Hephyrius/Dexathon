@@ -50,7 +50,7 @@ class Simulator():
           self.LastBlock = ""
           
           ##
-          self.InitNodes(3)
+          self.InitNodes(5)
           self.Genesis()
           self.DistributeFunds()
           #self.PrintBalances()
@@ -234,6 +234,7 @@ class Simulator():
      
      #simulate some transactions
      def SimulateFundSendTransactions(self):
+
           while(True):
                try:
                     time.sleep(15)
@@ -245,7 +246,6 @@ class Simulator():
                except Exception as e:
                     print(e)
 
-          
                
 
                
