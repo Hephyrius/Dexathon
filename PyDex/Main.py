@@ -28,12 +28,11 @@ class myencoder(JSONEncoder):
 class HephDex:
      
      Blockchain = []
-     
+     AlternativeCoins = []
      #temporarily a PoW approach while creating fundamentals. PoS is more complex!
      difficulty = 1
      MinimumTransactionValue = 0.001
      UTXOs = dict()
-     
      #init the blockchain
      def __init__(self):
           self.Blockchain = []
@@ -126,12 +125,12 @@ class HephDex:
           walletB = wlt.Wallet()
           
           #send 100 coins to walleta
-          genesisTransaction = txn.Transaction(Coinbase.PEMPublicKey.decode(), walletA.PEMPublicKey.decode(), 100, 0, None)
+          genesisTransaction = txn.Transaction(Coinbase.PEMPublicKey.decode(), walletA.PEMPublicKey.decode(), 10000, 0, None)
           genesisTransaction.GenerateTransactionSignature(Coinbase.PrivateKey)
           
           #give the transaction a manual hash
           genesisTransaction.TransactionHash = "0"
-          genesisTransaction.TransactionOutputs.append(outs.TransactionOutput(genesisTransaction.Recipient, genesisTransaction.Value, genesisTransaction.TransactionHash))
+          genesisTransaction.TransactionOutputs.append(outs.TransactionOutput(genesisTransaction.Recipient, genesisTransaction.Value, genesisTransaction.TransactionHash,0))
           self.UTXOs[genesisTransaction.TransactionOutputs[0].Id] = {"Transaction":genesisTransaction.TransactionOutputs[0]}
           
           print("create and mine genesis block")
@@ -170,6 +169,19 @@ class HephDex:
           #clears spent Utxos and keeps the chain clean
           self.CleanUpUtxo()
           self.CheckChainValid(genesisTransaction)
+          
+          #block 4 tests creating a new coin
+          block4 = bl.Block(block3.BlockHash)
+          print("balance of wallet a = " + str(walletB.getBalance(self)))
+          print("Creating a new coin")
+          CoinTxn = walletA.CreateNewCoin(self, "HephCoin", "Heph", 100000)
+          block4.AddTransaction(CoinTxn, self)
+          self.AddBlock(block4)
+          
+          print("balance of wallet a = " + str(walletA.getBalance(self)))
+          print("coin balance of wallet a = " + str(walletA.getCoinBalance(self, self.AlternativeCoins[0])))
+          
+          
           
           return self.UTXOs
           

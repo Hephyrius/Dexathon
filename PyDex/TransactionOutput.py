@@ -14,14 +14,18 @@ class TransactionOutput():
      Value = 0
      ParentTransactionId = ""
      Spent = False
+     TransactionType = ""
+     Data = ""
      
      #function used to make sure that the recipients and pkey are the same
-     def __init__(self, _recipient, _value, _parentTransactionId):
+     def __init__(self, _recipient, _value, _parentTransactionId, _TransactionType, _Data = None):
           self.Recipient = _recipient
           self.Value = _value
           self.ParentTransactionId = _parentTransactionId
-          self.Id = utils.UtilFunctions.applySha256(utils.UtilFunctions, str(self.Recipient)+"_"+str(self.Value)+"_"+str(self.ParentTransactionId))
           self.Spent = False
+          self.TransactionType = _TransactionType
+          self.Data = _Data
+          self.Id = utils.UtilFunctions.applySha256(utils.UtilFunctions, str(self.Recipient)+"_"+str(self.Value)+"_"+str(self.ParentTransactionId)+"_"+str(self.TransactionType))
      
      #function used to make sure that the recipients and pkey are the same
      def isSamePublicKey(self, _PublicKey):

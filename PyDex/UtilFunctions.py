@@ -36,7 +36,7 @@ class UtilFunctions:
      #verify a signature using a public key, if no error is thrown we get a bool of true, else we get a false
      def verifyECDSignature(Publickey, Data, Signature):
           #print(Publickey)
-          Pub = load_pem_public_key(Publickey, default_backend())
+          Pub = load_pem_public_key(Publickey.encode(), default_backend())
           try:
                Pub.verify(Signature, Data, ec.ECDSA(hashes.SHA256()))
                return True

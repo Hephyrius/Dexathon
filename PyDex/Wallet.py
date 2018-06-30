@@ -70,7 +70,7 @@ class Wallet():
           
           for i in MainChain.UTXOs:
                
-               if MainChain.UTXOs[i]['Transaction'].Recipient == self.PEMPublicKey.decode() and MainChain.UTXOs[i]['Transaction'].Spent == False:
+               if MainChain.UTXOs[i]['Transaction'].Recipient == self.PEMPublicKey.decode() and MainChain.UTXOs[i]['Transaction'].Spent == False and MainChain.UTXOs[i]['Transaction'].TransactionType == 0:
                     self.UTXOs[i] = {"Transaction":MainChain.UTXOs[i]['Transaction']}
                     total+= MainChain.UTXOs[i]['Transaction'].Value
           
@@ -94,7 +94,7 @@ class Wallet():
                if total > _Value:
                     break
           
-          transaction = txn.Transaction(self.PEMPublicKey, _RecipientPublic, _Value, 0, inputs)
+          transaction = txn.Transaction(self.PEMPublicKey.decode(), _RecipientPublic, _Value, 0, inputs)
           transaction.GenerateTransactionSignature(self.PrivateKey)
           
           #remove used UTXO from the wallet
@@ -102,3 +102,64 @@ class Wallet():
                self.UTXOs.pop(i)
           
           return transaction
+     
+     #function used in wallet to create a new coin
+     def CreateNewCoin(self, MainChain, CoinName, CoinSymbol, CoinSupply):
+          
+          if(self.getBalance(MainChain) < 100):
+               print("Not Enough Funds")
+               return None
+          
+          #basically cycle thru the outputs, adding to the total and input list until done
+          inputs = []
+          total = 0
+          
+          for i in self.UTXOs:
+               
+               if MainChain.UTXOs[i]['Transaction'].TransactionType == 0:
+                    inputs.append(i)
+                    total += MainChain.UTXOs[i]['Transaction'].Value
+                    if total >= 100:
+                         break
+          
+          MiscData = {"CoinName":CoinName, "Symbol":CoinSymbol, "Supply":CoinSupply}
+          transaction = txn.Transaction(self.PEMPublicKey.decode(), "0x0", 100, 1, inputs, MiscData)
+          transaction.GenerateTransactionSignature(self.PrivateKey)
+          
+          #remove used UTXO from the wallet
+          for i in inputs:
+               self.UTXOs.pop(i)
+          
+          return transaction
+     
+     
+     
+     #get the balance of the wallet
+     def getCoinBalance(self, MainChain, Coin):
+          
+          self.UTXOs = dict()
+          
+          total = 0
+          
+          for i in MainChain.UTXOs:
+               
+               if MainChain.UTXOs[i]['Transaction'].Recipient == self.PEMPublicKey.decode() and MainChain.UTXOs[i]['Transaction'].TransactionType == 2 and MainChain.UTXOs[i]['Transaction'].Data == Coin:
+                    self.UTXOs[i] = {"Transaction":MainChain.UTXOs[i]['Transaction']}
+                    total+= MainChain.UTXOs[i]['Transaction'].Value
+          
+          return total
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     

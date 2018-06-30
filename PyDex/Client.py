@@ -236,12 +236,12 @@ class Client():
           walletA = wlt.Wallet()
           
           #send 100 coins to walleta
-          genesisTransaction = txn.Transaction(Coinbase.PEMPublicKey, walletA.PEMPublicKey, 100, 0, None)
+          genesisTransaction = txn.Transaction(Coinbase.PEMPublicKey.decode(), walletA.PEMPublicKey.decode(), 100, 0, None)
           genesisTransaction.GenerateTransactionSignature(Coinbase.PrivateKey)
           
           #give the transaction a manual hash
           genesisTransaction.TransactionHash = "0"
-          genesisTransaction.TransactionOutputs.append(outs.TransactionOutput(genesisTransaction.Recipient, genesisTransaction.Value, genesisTransaction.TransactionHash))
+          genesisTransaction.TransactionOutputs.append(outs.TransactionOutput(genesisTransaction.Recipient, genesisTransaction.Value, genesisTransaction.TransactionHash, 0))
           self.UTXOs[genesisTransaction.TransactionOutputs[0].Id] = {"Transaction":genesisTransaction.TransactionOutputs[0]}
           self.Genesis = genesisTransaction
           
