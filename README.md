@@ -79,7 +79,9 @@ PyDex_Experi/ - Same Structure as above, but with some changes that reduced stab
 	* Type 5 - Limit Order
 	
 *Currently Masternode based. 
+
 	* Idea was a Custom Mesh Consensus thats loosely based on DPOS.
+	
 		* Basically the model has a Master Node used for discovery and that is used for the first few blocks. once a set number of coins have been staked it switches to a stake based election system - I did this because I suck at networking and this became a hinderence when working on consensus!
 
 ### Further Explanations
