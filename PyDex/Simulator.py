@@ -158,8 +158,8 @@ class Simulator():
           while True:
 
                if self.State == 0:
-#                    transactionSim = Thread(target = self.SimulateFundSendTransactions)
-#                    transactionSim.start()
+                    transactionSim = Thread(target = self.SimulateFundSendTransactions)
+                    transactionSim.start()
                     
                     self.ConstructorNode = 0
                     self.ValidatorNodes = []
@@ -232,12 +232,20 @@ class Simulator():
           self.TransactionQueue.append(Txn)
      
      
-     #simulate some transactions slowly
+     #simulate some transactions
      def SimulateFundSendTransactions(self):
           while(True):
-               time.sleep(10)
-               for i in self.KnowAddresses:
-                    self.AddTransactionToQueue(self.Coinbase.SendFunds(i, 5, self))
+               try:
+                    time.sleep(15)
+                    block1 = bl.Block(self.Blockchain[len(self.Blockchain)-1].BlockHash)
+                    for i in self.KnowAddresses:
+                         block1.AddTransaction(self.Coinbase.SendFunds(i, 1000, self), self)
+                    
+                    self.CandidateBlocks.append(block1)
+               except Exception as e:
+                    print(e)
+
+          
                
 
                
