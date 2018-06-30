@@ -158,6 +158,9 @@ class Simulator():
           while True:
 
                if self.State == 0:
+                    transactionSim = Thread(target = self.SimulateFundSendTransactions)
+                    transactionSim.start()
+                    
                     self.ConstructorNode = 0
                     self.ValidatorNodes = []
                     self.CandidateBlocks = []
@@ -226,6 +229,19 @@ class Simulator():
      #add the transaction to the 
      def AddTransactionToQueue(self, Txn):
           self.TransactionQueue.append(Txn)
+     
+     #simulate some transactions
+     def SimulateFundSendTransactions(self):
+          while(True):
+               time.sleep(0.5)
+               r = int(random.randrange(0, len(self.nodes)-1))
+
+               value = random.uniform(0.5, 15)
+               
+               newTx = self.Coinbase.SendFunds(self.nodes[r].MainWallet.PEMPublicKey.decode(), value, self)
+               self.AddTransactionToQueue(newTx)
+               
+               
           
      
           #Create a Block
