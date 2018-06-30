@@ -6,6 +6,12 @@ Binance Dexathon Entry
 The Dex Entry consists of a single implementation. 
 Language : Python, Purpose: An implementation where rapid experimentation is at the core.
 
+## Requirements
+
+* Python == 3.6
+* zmq (pip install zmq)
+* Cryptography (pip install Cryptography)
+
 ## Note From Creator:
 
 The Dexathon was a really educational project/competition. As a single person entrant, I had to wear many hats and learn a lot of technologies that i hadn't worked with much if at all before. Especially networking... I hate Networking. If a few more hours where given, the Simulator would be working in a manner that is indestinguistable from a networked chain.
@@ -89,19 +95,10 @@ Truncated_Experiment/ - This folder a similar Structure as pydex shown above, bu
 	
 		* Basically the model has a Master Node used for discovery and that is used for the first few blocks. once a set number of coins have been staked it switches to a stake based election system - I did this because I suck at networking and this became a hinderence when working on consensus!
 
-### Further Explanations
-
-* The entire message queing system needs to be looked at, it is a hack of a job  (I hate networking) so it does not work half the time!
-
-## Requirements
-
-* Python == 3.6
-* zmq (pip install zmq)
-* Cryptography (pip install Cryptography)
-
-## Note 
+### Note
 
 * This Implementation is from scratch with some influence from several sources such as medium posts
+* The entire message queing system used in Pydex/node.py and Pydex/Client.py to be looked at, it is a hack of a job  (I hate networking)!
 * This Dexathon entry works in a consensus-less single node environment, a multi-node simulated network and a multi-node networked environment.
 * Most of the Core functions (other than consensus) have been implemented in one of the three main chains [PyDex/Main.py, PyDex/Client.py, PyDex/Simulator.py]. So i hope some of my ideas are considered :D
 
