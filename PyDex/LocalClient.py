@@ -141,7 +141,187 @@ class LocalClient():
                               
                               print("Output sent does not reference the reciever")
                               return False
+                         
+                    if currentTransaction.TransactionType == 1:
                     
+                         if currentTransaction.GetInputsValue() != currentTransaction.GetOutputsValue()-100:
+                              print("When fee is taken, the output is incorrect")
+                              return False
+                         
+                         
+                         if currentTransaction.VerifyTransactionSignature() == False:
+                              
+                              print("Unable to verify Transaction")
+                              return False
+                         
+                         for k in currentTransaction.TransactionInputs:
+                              
+                              tempOutput = tempUTXO[k.TransactionOutputId]
+                              
+                              if tempOutput == None:
+                                   print("Input Transaction Missing")
+                              
+                              if(k.UTXO.Value != tempOutput['Transaction'].Value):
+                                   print("Referenced input used in transaction is not valid")
+                              
+                              tempUTXO.pop(k.TransactionOutputId)
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              tempUTXO[k.Id] = {"Transaction":k}
+                         
+                         hasSender = False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                                   
+                              if k.Recipient == currentTransaction.Sender:
+                                   hasSender = True
+                         
+                         if hasSender == False:
+                              
+                              print("Output residuals do not reference the sender")
+                              return False
+                         
+                    if currentTransaction.TransactionType == 2:
+                    
+                         if currentTransaction.GetInputsValue() != currentTransaction.GetOutputsValue():
+                              print("Inputs are not equal to outputs")
+                              return False
+                         
+                         
+                         if currentTransaction.VerifyTransactionSignature() == False:
+                              
+                              print("Unable to verify Transaction")
+                              return False
+                         
+                         for k in currentTransaction.TransactionInputs:
+                              
+                              tempOutput = tempUTXO[k.TransactionOutputId]
+                              
+                              if tempOutput == None:
+                                   print("Input Transaction Missing")
+                              
+                              if(k.UTXO.Value != tempOutput['Transaction'].Value):
+                                   print("Referenced input used in transaction is not valud")
+                              
+                              tempUTXO.pop(k.TransactionOutputId)
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              tempUTXO[k.Id] = {"Transaction":k}
+                         
+                         hasRecipient = False
+                         hasSender = False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              if k.Recipient == currentTransaction.Recipient:
+                                   hasRecipient = True
+                                   
+                              if k.Recipient == currentTransaction.Sender:
+                                   hasSender = True
+                         
+                         if hasSender == False:
+                              
+                              print("Output residual do not reference the sender")
+                              return False
+                         
+                         if hasRecipient == False:
+                              
+                              print("Output sent does not reference the reciever")
+                              return False
+                         
+                    if currentTransaction.TransactionType == 3:
+                    
+                         if currentTransaction.GetInputsValue() == currentTransaction.GetOutputsValue():
+                              print("Inputs are equal to outputs, no burning occured")
+                              return False
+                         
+                         
+                         if currentTransaction.VerifyTransactionSignature() == False:
+                              
+                              print("Unable to verify Transaction")
+                              return False
+                         
+                         for k in currentTransaction.TransactionInputs:
+                              
+                              tempOutput = tempUTXO[k.TransactionOutputId]
+                              
+                              if tempOutput == None:
+                                   print("Input Transaction Missing")
+                              
+                              if(k.UTXO.Value != tempOutput['Transaction'].Value):
+                                   print("Referenced input used in transaction is not valud")
+                              
+                              tempUTXO.pop(k.TransactionOutputId)
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              tempUTXO[k.Id] = {"Transaction":k}
+                         
+                         hasRecipient = False
+                         hasSender = False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                                   
+                              if k.Recipient == currentTransaction.Sender:
+                                   hasSender = True
+                         
+                         if hasSender == False:
+                              
+                              print("Output residuals do not reference the sender")
+                              return False
+                         
+                    if currentTransaction.TransactionType == 4:
+                    
+                         if currentTransaction.GetInputsValue() != currentTransaction.GetOutputsValue():
+                              print("Inputs are not equal to outputs")
+                              return False
+                         
+                         
+                         if currentTransaction.VerifyTransactionSignature() == False:
+                              
+                              print("Unable to verify Transaction")
+                              return False
+                         
+                         for k in currentTransaction.TransactionInputs:
+                              
+                              tempOutput = tempUTXO[k.TransactionOutputId]
+                              
+                              if tempOutput == None:
+                                   print("Input Transaction Missing")
+                              
+                              if(k.UTXO.Value != tempOutput['Transaction'].Value):
+                                   print("Referenced input used in transaction is not valud")
+                              
+                              tempUTXO.pop(k.TransactionOutputId)
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              tempUTXO[k.Id] = {"Transaction":k}
+                         
+                         hasRecipient = False
+                         hasSender = False
+                         
+                         for k in currentTransaction.TransactionOutputs:
+                              
+                              if k.Recipient == currentTransaction.Recipient:
+                                   hasRecipient = True
+                                   
+                              if k.Recipient == currentTransaction.Sender:
+                                   hasSender = True
+                         
+                         if hasSender == False:
+                              
+                              print("Output residual do not reference the sender")
+                              return False
+                         
+                         if hasRecipient == False:
+                              
+                              print("Output sent does not reference the reciever")
+                              return False
+                         
+                         
           print("Blockchain is Valid")    
           self.UTXOs = tempUTXO
           return True
